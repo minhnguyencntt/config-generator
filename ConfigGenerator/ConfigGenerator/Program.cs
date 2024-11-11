@@ -5,12 +5,51 @@ using ConfigGenerator.Models;
 using CsvHelper;
 using CsvHelper.Configuration;
 using dotenv.net;
+using Newtonsoft.Json;
+using static ConfigGenerator.Constants;
 
 namespace MyApp
 {
     internal class Program
     {
         static void Main(string[] args)
+        {
+            //ProcessConfigs(args);
+
+            ProcessNetpol(args);
+        }
+
+        private static void ProcessNetpol(string[] args)
+        {
+            var files = Directory.GetFiles(Path.Combine(Constants.Workspace, "netpol"));
+            var logs = new StringBuilder();
+            foreach (var file in files)
+            {
+                var content = File.ReadAllText(file);
+                var config = JsonConvert.DeserializeObject<NetpolConfig>(content);
+                if (config != null && config.Spec != null && config.Spec.Egress != null && config.Spec.Egress.Any())
+                {
+
+                    logs.AppendLine($"=========={file}==========");
+                    logs.AppendLine($"# egress keys loaded: {config.Spec.Egress.Count}");
+
+                    foreach (var item in config.Spec.Egress)
+                    {
+                        if (item.To != null && item.To.Any() && item.Ports != null && item.Ports.Any())
+                        {
+                            logs.AppendLine($"[IP]: {item.To[0].IpBlock.Cidr} [Port]: {item.Ports[0].Port}");
+                        }
+                    }
+                    logs.AppendLine("==========");
+                    logs.AppendLine();
+                }
+            }
+
+            using StreamWriter writer = new(Path.Combine(Constants.Workspace, "netpol", $"log.{DateTime.Now:ddMMyyyyhhmm}"));
+            writer.Write(logs.ToString());
+        }
+
+        private static void ProcessConfigs(string[] args)
         {
             var serviceMap = new Dictionary<string, ServiceMap>();
             var configMap = new Dictionary<string, string>();
@@ -221,6 +260,7 @@ namespace MyApp
                 }
             }
         }
+
         private static IDictionary<string, string> LoadEnv(ServiceMap map, ref StringBuilder logs)
         {
             logs.AppendLine($"=========={nameof(LoadEnv)}==========");
