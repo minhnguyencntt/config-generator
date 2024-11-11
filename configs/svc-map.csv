@@ -1,2 +1,2 @@
 ﻿svc,folder,config
-bar,var-backend,application-prod.properties-preprod
+bar,bar-backend,application-prod.properties-preprod
