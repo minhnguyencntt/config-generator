@@ -25,10 +25,6 @@ namespace MyApp
             foreach (var service in serviceMap.Values)
             {
                 var processedKeyResult = new List<ProcessedKeyResult>();
-                if (service.Service != "odonboard")
-                {
-                    continue;
-                }
                 var logs = new StringBuilder();
                 var envVars = LoadEnv(service, ref logs);
                 var finalEnvVars = new Dictionary<string, string>();
@@ -144,7 +140,7 @@ namespace MyApp
             using var reader = new StreamReader(Path.Combine(Constants.Workspace, "svc-map.csv"));
             using var csv = new CsvReader(reader, config);
             var records = csv.GetRecords<ServiceMap>();
-            foreach (var record in records.Where(x => x.Service != "los"))
+            foreach (var record in records)
             {
                 if (!string.IsNullOrEmpty(record.Service) && !string.IsNullOrEmpty(record.Config) && !string.IsNullOrEmpty(record.Folder))
                 {
